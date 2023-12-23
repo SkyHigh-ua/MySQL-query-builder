@@ -1,3 +1,6 @@
+import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 interface DropdownProps {
     label?: string;
     options: string[];
@@ -21,7 +24,7 @@ export const Dropdown = ({ label, options, values, selected, onChange, error, er
         </select>
         {(!error && error !== undefined) && <p className="text-red-500 text-xs italic">{errorMessage}</p>}
         <div className="pointer-events-none absolute top-4 bottom-0 right-0 flex items-center px-2 text-white">
-          <i className="fa-solid fa-caret-down"></i>
+          <FontAwesomeIcon icon={faCaretDown} />
         </div>
       </div>
     );

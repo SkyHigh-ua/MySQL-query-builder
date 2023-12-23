@@ -1,3 +1,6 @@
+import { faMinus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 interface ButtonProps {
     label: string;
     onClick: () => any;
@@ -17,7 +20,7 @@ export const Button = ({ label, onClick, type, tabIndex }: ButtonProps ) => {
   
     return (
     <button className={style} onClick={onClick} tabIndex={tabIndex || 0}>
-      {type === 'form_remove' ? <i className="fa-solid fa-minus"></i> : label}
+      {type === 'form_remove' ? <FontAwesomeIcon icon={faMinus} /> : label}
     </button>
     )
 };

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Alert.css'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleCheck, faCircleExclamation, faTriangleExclamation, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 type AlertProps = {
   id: number;
@@ -30,12 +32,16 @@ const Alert: React.FC<AlertProps> = ({ id, message, dismissible, type, onDismiss
       type === 'error' ? 'bg-red-100 border-red-400 text-red-600' : 
       'bg-yellow-100 border-yellow-400 text-yellow-600'
       }`}>
-      <i className={`fas ${type === 'success' ? 'fa-circle-check text-green-500' : 
-      type === 'error' ? 'fa-circle-exclamation text-red-500' : 
-      'fa-triangle-exclamation text-yellow-500'} mr-2`} aria-hidden="true"></i>
+      <FontAwesomeIcon className={`${type === 'success' ? 'text-green-500' : 
+      type === 'error' ? 'text-red-500' : 
+      'text-yellow-500'} mr-2`}
+      aria-hidden="true"
+      icon={type === 'success' ? faCircleCheck : 
+      type === 'error' ? faCircleExclamation : 
+      faTriangleExclamation} />
       {message}
       {dismissible && <button onClick={handleDismiss} className="ml-2 bg-transparent border-none cursor-pointer">
-        <i className="fa-solid fa-xmark"></i>
+        <FontAwesomeIcon icon={faXmark} />
       </button>}
     </div>
   );
