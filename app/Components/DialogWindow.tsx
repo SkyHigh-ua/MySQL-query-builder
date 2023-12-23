@@ -3,7 +3,8 @@ import { ProjectContext } from '../context/ProjectContext';
 import { SQLCreateTableParser } from '../functions/Parser';
 import { calculateTablePosition } from '../functions/calculateTablePosition'
 import { transformTablesToFlowElements } from '../functions/transformFunctions';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faXmark } from '@fortawesome/free-solid-svg-icons';
 interface DialogWindowProps {
   onClose: () => void;
 }
@@ -54,7 +55,7 @@ export const DialogWindow: React.FC<DialogWindowProps> = ({ onClose }) => {
             className="absolute top-2 right-2 bg-gray-700 text-white rounded-full w-4 h-4 flex items-center justify-center hover:shadow-2xl"
             onClick={onClose}
           >
-            <i className="fa-solid fa-xmark hover:text-gray-400"></i>
+            <FontAwesomeIcon className="hover:text-gray-300" icon={faXmark}/>
           </button>
           <div className="flex flex-col gap-4">
             <input

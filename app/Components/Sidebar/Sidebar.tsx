@@ -6,8 +6,10 @@ import { FormOptions } from './FormOptions';
 import { Button } from './Button';
 import { StepIndicator } from './StepIndicator';
 import { isTableAltered, validateOptions } from '../../functions/Validation'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 
-export const Sidebar = () => {
+export const Sidebar = ({ tabIndex }: {tabIndex: number}) => {
   const { nodes, selectedTable, selectedFields, setSelectedFields, setQueryData, setSelectedTable, setIsTerminalEnabled, isNewQuery, setIsNewQuery, selectable, setSelectable, addAlert, handleAddTable, handleEditTable, handleRemoveTable } = useContext(ProjectContext);
   const [step, setStep] = useState(1);
   const [maxSteps, setMaxSteps] = useState(1);
@@ -187,13 +189,13 @@ export const Sidebar = () => {
       <StepIndicator currentStep={step} totalSteps={maxSteps} stepNames={steps}/>
       <div className={`bg-gray-800 text-white transition-all ease-in-out ${isSidebarCollapsed ? 'p-0 w-0 opacity-0 invisible' : 'p-5 w-80 opacity-100 visible'} h-full flex flex-col overflow-y-auto justify-between`}>
         {steps[step-1] === 'query' && <div className="flex flex-col items-center">
-          <Button label='CREATE TABLE' onClick={() => handleQueryTypeChange("create")} type='main_full'/>
-          <Button label='DROP TABLE' onClick={() => handleQueryTypeChange("drop")} type='main_full'/>
-          <Button label='ALTER TABLE' onClick={() => handleQueryTypeChange("edit")} type='main_full'/>
-          <Button label='SELECT' onClick={() => handleQueryTypeChange("select")} type='main_full'/>
-          <Button label='INSERT' onClick={() => handleQueryTypeChange("insert")} type='main_full'/>
-          <Button label='UPDATE' onClick={() => handleQueryTypeChange("update")} type='main_full'/>
-          <Button label='DELETE' onClick={() => handleQueryTypeChange("delete")} type='main_full'/>
+          <Button label='CREATE TABLE' onClick={() => handleQueryTypeChange("create")} type='main_full' tabIndex={tabIndex}/>
+          <Button label='DROP TABLE' onClick={() => handleQueryTypeChange("drop")} type='main_full' tabIndex={tabIndex}/>
+          <Button label='ALTER TABLE' onClick={() => handleQueryTypeChange("edit")} type='main_full' tabIndex={tabIndex}/>
+          <Button label='SELECT' onClick={() => handleQueryTypeChange("select")} type='main_full' tabIndex={tabIndex}/>
+          <Button label='INSERT' onClick={() => handleQueryTypeChange("insert")} type='main_full' tabIndex={tabIndex}/>
+          <Button label='UPDATE' onClick={() => handleQueryTypeChange("update")} type='main_full' tabIndex={tabIndex}/>
+          <Button label='DELETE' onClick={() => handleQueryTypeChange("delete")} type='main_full' tabIndex={tabIndex}/>
         </div>}
         {(steps[step-1] === 'selection') && <div className="h-full flex flex-col items-center justify-center">
           <label className='font-bold'>{`Select a table${queryType === 'select' ? ' fileds' : ''}`}</label> 
@@ -207,7 +209,7 @@ export const Sidebar = () => {
         </div>}
       </div> 
       {(step !== maxSteps + 1 || step === 1) && <button onClick={toggleSidebar} className="absolute z-[49] right-0 bottom-0 top-0 my-auto transform translate-x-full h-10 w-10 p-1 text-gray-600 mx-2 hover:text-gray-800">
-        <i className={`fas ${isSidebarCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`} aria-hidden="true"></i>
+        <FontAwesomeIcon aria-hidden="true" icon={isSidebarCollapsed ? faChevronRight : faChevronLeft} />
       </button>}
     </div>
   );

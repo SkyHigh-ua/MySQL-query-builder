@@ -9,6 +9,8 @@ import { createUpdate } from '../functions/Update';
 import { createDelete } from '../functions/Delete';
 import { createCreateTable } from '../functions/CreateTable';
 import { createAlterTable } from '../functions/AlterTable';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronDown, faChevronUp, faFilePen, faPlus, faSave, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const Terminal = () => {
   const { nodes, selectedFields, selectedTable, queryData, isTerminalEnabled, setIsTerminalEnabled, isNewQuery, setIsNewQuery, addAlert }  = useContext(ProjectContext);
@@ -152,7 +154,7 @@ const Terminal = () => {
   const renderQueries = () => {
     return queries.map((query, index) => (
       <div key={index} className="relative flex items-center mb-3">
-        <button onClick={() => removeQuery(index)} className="bg-gray-700 text-white p-2 w-10 h-10 rounded-full hover:bg-gray-600 z-10"><i className="fa-solid fa-trash"></i></button>
+        <button onClick={() => removeQuery(index)} className="bg-gray-700 text-white p-2 w-10 h-10 rounded-full hover:bg-gray-600 z-10"><FontAwesomeIcon icon={faTrash}/></button>
         <div className="flex-1 h-full p-2 ml-3 overflow-hidden">
           <div
               onDoubleClick={query !== "UNION" ? () => handleDoubleClick(index) : undefined}
@@ -191,14 +193,14 @@ const Terminal = () => {
     <div className="relative bg-gray-800 flex flex-row h-fit">
       {isTerminalEnabled && (
         <button onClick={toggleTerminal} className={`absolute z-[49] top-0 right-1/2 transform h-7 w-10 px-1 ${isTerminalCollapsed ? 'rounded-t-lg -translate-y-full text-gray-600' : 'rounded-b-lg text-white'} hover:text-gray-500`}>
-          <i className={`fas ${isTerminalCollapsed ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true"></i>
+          <FontAwesomeIcon aria-hidden="true" icon={isTerminalCollapsed ? faChevronUp : faChevronDown} />
         </button>
       )}
       <div className={`${isTerminalEnabled ? 'h-fit' : 'hidden'} flex flex-row relative w-full`}>
         <div className={`relative text-white w-full align-middle transition-all ease-in-out ${isTerminalCollapsed ? 'h-0 opacity-0 invisible' : 'h-80 opacity-100 visible'}`}>
           <div className='bg-gray-950 h-fit w-full flex flex-row justify-between'>
             <div className='pl-4 flex items-center w-1/5'>
-              <i className="fa-solid fa-file-pen"></i>
+              <FontAwesomeIcon icon={faFilePen}/>
               <div className="p-2 w-full h-fit relative focus:bg-gray-900">
                 <span className="text-gray-300">{pageName}.sql</span>
                 <textarea
@@ -214,13 +216,13 @@ const Terminal = () => {
               </div>
             </div>
             <div className='flex flex-row h-full align-middle'>
-              <button className='text-white p-2 mx-5 hover:text-gray-400' onClick={saveQueriesToFile}><i className="fas fa-save"></i></button>
+              <button className='text-white p-2 mx-5 hover:text-gray-400' onClick={saveQueriesToFile}><FontAwesomeIcon icon={faSave} /></button>
             </div>
           </div>
           <div className="p-5 w-full h-[15rem] flex-1 overflow-scroll">
             {queries.length > 0 && renderQueries()}
             <div>
-              {(queries[queries.length - 1] !== 'UNION' && (!isNewQuery && isNewQuery !== 'removeUnion')) && <button onClick={addQuery} className="bg-gray-700 text-white  mr-5 p-2 w-10 h-10 rounded-full hover:bg-gray-600"><i className="fa-solid fa-plus"></i></button>}
+              {(queries[queries.length - 1] !== 'UNION' && (!isNewQuery && isNewQuery !== 'removeUnion')) && <button onClick={addQuery} className="bg-gray-700 text-white  mr-5 p-2 w-10 h-10 rounded-full hover:bg-gray-600"><FontAwesomeIcon icon={faPlus}/></button>}
               {(queries.length > 0 && queries[queries.length - 1].startsWith('SELECT')) && <button onClick={addUnionQuery} className="bg-gray-700 text-white p-2 w-fit h-10 rounded-xl hover:bg-gray-600">UNION</button>}
             </div>
           </div>

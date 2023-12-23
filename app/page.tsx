@@ -25,7 +25,7 @@ export default function Home() {
       )}
       <div className="h-screen flex flex-col">
         <div className="flex-1 flex">
-          <Sidebar />
+          <Sidebar tabIndex={isDialogOpen ? -1 : 0}/>
           <div className="flex-1 flex flex-col w-4/5">
             <ERDiagram />
             <Terminal />
