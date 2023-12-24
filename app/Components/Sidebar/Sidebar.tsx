@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { ProjectContext } from '../../context/ProjectContext';
-import { Index, Table } from '../../Interfaces/Table';
-import { Query, QueryProps } from '../../Interfaces/Query';
+import { Index, Table } from '../../interfaces/Table';
+import { Query, QueryProps } from '../../interfaces/Query';
 import { FormOptions } from './FormOptions';
 import { Button } from './Button';
 import { StepIndicator } from './StepIndicator';
@@ -25,7 +25,7 @@ export const Sidebar = ({ tabIndex }: {tabIndex: number}) => {
 
   const goToNextStep = () => {
     if (step === maxSteps && maxSteps !== 1) {
-      const [validationResult, validationMessage] = validateOptions(options, queryType);
+      const [validationResult, validationMessage] = validateOptions(options, queryType, selectedFields, selectedTable?.data);
       if (validationResult) {
         if (queryType === 'edit' && selectedTable && options) {
           if (!isTableAltered(selectedTable.data, options)) {

@@ -1,4 +1,4 @@
-import { Table } from '../Interfaces/Table'
+import { Table } from '../interfaces/Table'
 
 export function createDropTable(table: Table, tables: Table[]): string {
     let queries = [];

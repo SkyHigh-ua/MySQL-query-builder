@@ -19,7 +19,7 @@ export const Dropdown = ({ label, options, values, selected, onChange, error, er
           className={`appearance-none block w-full bg-gray-800 border text-white ${(!error && error !== undefined) ? 'border-red-500' : 'border-gray-950'} rounded-md py-2 px-3 mb-1 leading-tight focus:outline-none focus:bg-gray-900`}
           onChange={onChange}>
           {options.map((option, index) => (
-            <option value={values[index]} defaultValue={selected === undefined ? selected : ''}>{option}</option>
+            <option key={`${label}-${option}-${values[index]}-${index}`} value={values[index]} defaultValue={selected === undefined ? selected : ''}>{option}</option>
           ))}
         </select>
         {(!error && error !== undefined) && <p className="text-red-500 text-xs italic">{errorMessage}</p>}

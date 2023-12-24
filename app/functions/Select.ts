@@ -1,5 +1,5 @@
-import { QueryProps } from '../Interfaces/Query';
-import { Table, SelectedField } from '../Interfaces/Table';
+import { QueryProps } from '../interfaces/Query';
+import { Table, SelectedField } from '../interfaces/Table';
 
 interface relation {
     fromSchema: string,
@@ -38,7 +38,7 @@ export function createSelect(SelectedFields: SelectedField[], Tables: Table[], S
                 }
             });
         });
-
+    
     function findJoinPath(startTable: involvedTable, endTable: involvedTable, allJoins: relation[], path: relation[] = [], visited = new Set()): relation[] | null {
         const tableId = `${startTable.schema}.${startTable.title}`;
         if (visited.has(tableId)) {
@@ -77,20 +77,24 @@ export function createSelect(SelectedFields: SelectedField[], Tables: Table[], S
 
     let fromPart: string[] = [];
     const joinedTables: involvedTable[] = [];
-    let joinPath = findJoinPath(involvedTables[0], involvedTables[1], allJoins);
-    if (joinPath === null) {
-        joinPath = findJoinPath(involvedTables[1], involvedTables[0], allJoins);
-        fromPart.push(`\`${involvedTables[1].schema}\`.\`${involvedTables[1].title}\``);
-    } else {
-        fromPart.push(`\`${involvedTables[0].schema}\`.\`${involvedTables[0].title}\``);
-    }
-    if (joinPath === null) throw new Error('Some tables are not related.');
-    joinPath.forEach(join => {
-        if (!joinedTables.includes({schema: join.toSchema, title: join.toTable})){
-            joinedTables.push({schema: join.toSchema, title: join.toTable});
-            fromPart.push(`JOIN \`${join.toSchema}\`.\`${join.toTable}\` ON \`${join.fromSchema}\`.\`${join.fromTable}\`.\`${join.fromField}\` = \`${join.toSchema}\`.\`${join.toTable}\`.\`${join.toField}\``);
+    if(involvedTables.length > 1) {
+        let joinPath = findJoinPath(involvedTables[0], involvedTables[1], allJoins);
+        if (joinPath === null) {
+            joinPath = findJoinPath(involvedTables[1], involvedTables[0], allJoins);
+            fromPart.push(`\`${involvedTables[1].schema}\`.\`${involvedTables[1].title}\``);
+        } else {
+            fromPart.push(`\`${involvedTables[0].schema}\`.\`${involvedTables[0].title}\``);
         }
-    });
+        if (joinPath === null) throw new Error('Some tables are not related.');
+        joinPath.forEach(join => {
+            if (!joinedTables.includes({schema: join.toSchema, title: join.toTable})){
+                joinedTables.push({schema: join.toSchema, title: join.toTable});
+                fromPart.push(`JOIN \`${join.toSchema}\`.\`${join.toTable}\` ON \`${join.fromSchema}\`.\`${join.fromTable}\`.\`${join.fromField}\` = \`${join.toSchema}\`.\`${join.toTable}\`.\`${join.toField}\``);
+            }
+        });
+    } else {
+        fromPart.push(`${involvedTables[0].schema}.${involvedTables[0].title}`);
+    }
     for (let i = 2; i < involvedTables.length; i++) {
         let joinPath = findJoinPath(involvedTables[i - 1], involvedTables[i], allJoins);
         if (joinPath === null) {

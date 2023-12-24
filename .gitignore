@@ -8,6 +8,8 @@
 
 # testing
 /coverage
+/tests
+jest.config.js
 
 # next.js
 /.next/

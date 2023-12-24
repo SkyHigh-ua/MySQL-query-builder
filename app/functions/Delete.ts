@@ -1,5 +1,5 @@
-import { QueryProps } from "../Interfaces/Query";
-import { Table } from "../Interfaces/Table";
+import { QueryProps } from "../interfaces/Query";
+import { Table } from "../interfaces/Table";
 
 export function createDelete(table: Table, data: QueryProps): string {
     const { schema, title } = table;

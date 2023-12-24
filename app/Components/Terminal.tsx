@@ -99,6 +99,11 @@ const Terminal = () => {
       if(!queries.length) {
         setIsTerminalEnabled(false);
       }
+      if(queries[queries.length - 1] === 'UNION'){
+        const removedUnion = [...queries.slice(0, -1)];
+        removedUnion[removedUnion.length-1] = removedUnion[removedUnion.length-1]+';'
+        setQueries(removedUnion);
+      }
       setIsNewQuery(true);
     }
   }, [queryData]);

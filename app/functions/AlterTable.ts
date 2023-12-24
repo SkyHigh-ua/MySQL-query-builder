@@ -1,5 +1,5 @@
-import { QueryProps } from "../Interfaces/Query";
-import { Index, Table } from "../Interfaces/Table";
+import { QueryProps } from "../interfaces/Query";
+import { Index, Table } from "../interfaces/Table";
 
 function isIndexEqual(index1: Index, index2: Index) {
   return index1.name === index2.name &&
@@ -20,7 +20,7 @@ export function createAlterTable(table: Table, data: QueryProps): string {
 
     switch (fieldData.action) {
         case 'add':
-            let addStatement = `ADD COLUMN \`${fieldData.data?.name}\` ${fieldData.type}`;
+            let addStatement = `ADD COLUMN \`${fieldData.name}\` ${fieldData.type}`;
             if (fieldData.constraints) {
               if (fieldData.constraints.notNull) addStatement += ' NOT NULL';
               if (fieldData.constraints.default) addStatement += ` DEFAULT ${fieldData.constraints.default}`;

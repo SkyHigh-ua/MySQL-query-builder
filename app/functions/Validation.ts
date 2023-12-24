@@ -1,5 +1,5 @@
-import { QueryProps, FieldData } from "../Interfaces/Query";
-import { SelectedField, Table, Field } from "../Interfaces/Table";
+import { QueryProps, FieldData } from "../interfaces/Query";
+import { SelectedField, Table, Field } from "../interfaces/Table";
 
 export function isValidName(name: string | undefined): boolean {
     return name ? /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name) : true;
@@ -92,26 +92,65 @@ export function isValidFieldData(data: string | undefined, type: string | undefi
     return true;
 }
 
-export function isValidWhereClause(whereClause: string | undefined, table?: Table, fields?: SelectedField[]) {
+function isValidCondition(condition:string, data:string, type: string, notNull?: boolean): boolean {
+    if (condition === 'BETWEEN') {
+        const match = data.match(/^([^,]+) AND ([^,]+)$/);
+        if(match) {
+            if(!isValidFieldData(match[1], type, notNull)) return false;
+            if(!isValidFieldData(match[2], type, notNull)) return false;
+        } else {
+            return false;
+        }
+    } else if (condition === 'IN') {
+        const trimmedData = data.replace(/^\(|\)$/g, '');
+        const values = trimmedData.split(',');
+        if (!values.every(value => isValidFieldData(value.trim(), type, notNull))) return false;
+    } else {
+        if(!isValidFieldData(data, type, notNull)) return false;
+    }
+    return true;
+}
+
+export function isValidWhereClause({whereClause, table, fields}: {whereClause: string | undefined, table?: Table | null, fields?: SelectedField[]}) {
     if (whereClause === undefined || whereClause === '') return true;
     if (!whereClause.trim()) {
         return false;
     }
 
-    const basicSyntaxRegex = /^(?:\w+\s*(?:=|<|>|<=|>=|<>|!=)\s*(?:\w+|'[^']*')+)(?:\s*(?:AND|OR)\s*(?:\w+\s*(?:=|<|>|<=|>=|<>|!=)\s*(?:\w+|'[^']*')+))*$/;
-    if (!basicSyntaxRegex.test(whereClause)) {
-        return false;
+    const conditions = whereClause.split(/\s+(AND|OR)\s+/);
+
+    for (const condition of conditions) {
+        if (['AND', 'OR'].includes(condition)) continue;
+        const match = condition.match(/(\w+)\s*(=|<|>|<=|>=|<>|!=|LIKE|BETWEEN|IN)\s*(.+)/);
+        if (match) {
+            const fieldName = match[1]
+            const type = match[2]
+            const fieldData = match[3]
+            if (fields) {
+                const field = fields.find(field => field.field.name === fieldName);
+                if(!field) return false;
+                if(!isValidCondition(type, fieldData, field.field.type, field.field.constraints?.notNull)) return false;
+            } else if (table) {
+                const field = table.fields.find(field => field.name === fieldName);
+                if(!field) return false;
+                if(!isValidCondition(type, fieldData, field.type, field.constraints?.notNull)) return false;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     return true;
 }
 
-export function validateOptions(options: QueryProps | null, type: string): [boolean, string] {
+export function validateOptions(options: QueryProps | null, type: string, selectedFields?: SelectedField[], selectedTable?: Table | null): [boolean, string] {
     let isTherePK = false;
     switch (type) {
         case "select":
             if (options === null) return [true, ''];
-            if (options.where && !isValidWhereClause(options.where)) return [false, 'Where Clause is Incorrect.'];
+            if (options.where && !isValidWhereClause({whereClause: options.where, fields: selectedFields})) return [false, 'Where Clause is Incorrect.'];
             if (options.limit && options.limit <= 0) return [false, 'Limit value is Incorrect.'];
             return [true, ''];
         case "insert":
@@ -121,12 +160,12 @@ export function validateOptions(options: QueryProps | null, type: string): [bool
         case "update":
             if (options === null) return [false, 'At least one field must be filled.'];
             if (options?.fieldsData?.every(field => !field.data?.value)) return [false, 'At least one field must be filled.'];
-            if (options.where && !isValidWhereClause(options.where)) return [false, 'Where Clause is Incorrect.'];
+            if (options.where && !isValidWhereClause({whereClause: options.where, table: selectedTable})) return [false, 'Where Clause is Incorrect.'];
             if (!options.where) return [false, 'Where Clause must be filled.'];
             return [true, ''];
         case "delete":
             if (options === null) return [false, 'At least one field must be filled.'];
-            if (options.where && !isValidWhereClause(options.where)) return [false, 'Where Clause is Incorrect'];
+            if (options.where && !isValidWhereClause({whereClause: options.where, table: selectedTable})) return [false, 'Where Clause is Incorrect'];
             if (!options.where) return [false, 'Where Clause must be filled.'];
             return [true, ''];
         case "create":

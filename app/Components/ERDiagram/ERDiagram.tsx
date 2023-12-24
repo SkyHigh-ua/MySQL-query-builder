@@ -3,7 +3,7 @@ import ReactFlow, { addEdge, Background, Controls, type Connection, type Edge, t
 import Table from './Table';
 import 'reactflow/dist/style.css';
 import { ProjectContext } from '../../context/ProjectContext';
-import { Field, Index } from '../../Interfaces/Table';
+import { Field, Index } from '../../interfaces/Table';
 
 const nodeTypes = {
   table: Table,

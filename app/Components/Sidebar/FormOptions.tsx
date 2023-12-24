@@ -1,7 +1,7 @@
 import { FC, useContext, useEffect, useState } from "react";
-import { QueryProps } from "../../Interfaces/Query";
+import { QueryProps } from "../../interfaces/Query";
 import { ProjectContext } from "../../context/ProjectContext"; 
-import { Field } from "../../Interfaces/Table";
+import { Field } from "../../interfaces/Table";
 import { Button } from './Button';
 import { QueryInput } from "./QueryInput";
 import { Dropdown } from "./Dropdown";
@@ -18,7 +18,6 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
 
     const [fields, setFields] = useState([true]);
     const [groupByFields, setGroupByFields] = useState<string[]>([]);
-
 
     useEffect(() => {
       if (queryType === 'select') setGroupByFields(['', ...selectedFields.filter((sf, si) => {
@@ -52,14 +51,15 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
         setOptions((oldOptions) => ({ ...oldOptions, fieldsData: [{}] }));
       } else {
         const fieldsData = [...options.fieldsData];
-        let newFields = fieldsData.filter((field, i) => i !== index && field.action !== 'add');
         if(fieldsData[index].action !== 'add') {
-          newFields = fieldsData.map((field, i) => {
+          setOptions((oldOptions) => ({ ...oldOptions, fieldsData: fieldsData.map((field, i) => {
             if (i === index) return {...field, action: "remove"};
             return field;
-          });
+          }) }));
+        } else {
+          console.log(fieldsData.filter((field, i) => i === index))
+          setOptions((oldOptions) => ({ ...oldOptions, fieldsData: fieldsData.filter((field, i) => i !== index) }));
         }
-        setOptions((oldOptions) => ({ ...oldOptions, fieldsData: newFields }));
       }
     };
 
@@ -96,7 +96,7 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
         return (
           <div className="flex flex-col">
             <label><input className="mr-2" type="checkbox" onChange={(e) => handleOptionChange('distinct', e.target.checked)} /> DISTINCT</label>
-            <QueryInput label="WHERE" placeholder="Condition" value={options?.where} error={options?.where ? isValidWhereClause(options?.where) : true} errorMessage="Where clause is incorrect." onChange={(e) => handleOptionChange('where', e.target.value)}/>
+            <QueryInput label="WHERE" placeholder="Condition" value={options?.where} error={options?.where ? isValidWhereClause({whereClause: options?.where, fields: selectedFields}) : true} errorMessage="Where clause is incorrect." onChange={(e) => handleOptionChange('where', e.target.value)}/>
             <Dropdown label="ORDER BY" 
                   options={['', ...selectedFields.map(field => field.field.name)]} 
                   values={['', ...selectedFields.map(field => field.field.name)]} 
@@ -125,7 +125,7 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
           <div className="flex flex-col overflow-scroll">
             {selectedTable && (<> 
                 {selectedTable.data.fields.map((field: Field, index: number) => (
-                <QueryInput label={field.name} placeholder="Data" value={(options?.fieldsData && options.fieldsData[index]) && options?.fieldsData[index].data?.value} error={isValidFieldData(options?.fieldsData ? options.fieldsData[index]?.data?.value : undefined, field.type, field.constraints?.notNull)} errorMessage="Data is incorrect." onChange={(e) => handleOptionChange('fieldsData', e.target.value, 'data', index, `${field.name}`)}/>
+                <QueryInput key={`insert-${field.name}`} label={field.name} placeholder="Data" value={(options?.fieldsData && options.fieldsData[index]) && options?.fieldsData[index].data?.value} error={isValidFieldData(options?.fieldsData ? options.fieldsData[index]?.data?.value : undefined, field.type, field.constraints?.notNull)} errorMessage="Data is incorrect." onChange={(e) => handleOptionChange('fieldsData', e.target.value, 'data', index, `${field.name}`)}/>
                 ))}
              </>)}
           </div>
@@ -136,9 +136,9 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
           <div className="flex flex-col overflow-scroll">
             {selectedTable && (<> 
                 {selectedTable.data.fields.map((field: Field, index: number) => (
-                <QueryInput label={field.name} placeholder="Data" value={(options?.fieldsData && options.fieldsData[index]) && options?.fieldsData[index].data?.value} error={isValidFieldData(options?.fieldsData ? options.fieldsData[index]?.data?.value : undefined, field.type, field.constraints?.notNull)} errorMessage="Data is incorrect." onChange={(e) => handleOptionChange('fieldsData', e.target.value, 'data', index, `${field.name}`)}/>
+                <QueryInput key={`update-${field.name}`} label={field.name} placeholder="Data" value={(options?.fieldsData && options.fieldsData[index]) && options?.fieldsData[index].data?.value} error={isValidFieldData(options?.fieldsData ? options.fieldsData[index]?.data?.value : undefined, field.type, field.constraints?.notNull)} errorMessage="Data is incorrect." onChange={(e) => handleOptionChange('fieldsData', e.target.value, 'data', index, `${field.name}`)}/>
                 ))}
-                <QueryInput label="WHERE" placeholder="Condition" value={options?.where} error={isValidWhereClause(options?.where)} errorMessage="Where clause is incorrect." onChange={(e) => handleOptionChange('where', e.target.value)}/>
+                <QueryInput label="WHERE" placeholder="Condition" value={options?.where} error={isValidWhereClause({whereClause: options?.where, table: selectedTable.data})} errorMessage="Where clause is incorrect." onChange={(e) => handleOptionChange('where', e.target.value)}/>
              </>)}
           </div>
         );
@@ -147,7 +147,7 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
         return (
           <div className="flex flex-col">
             {selectedTable && (
-              <QueryInput label="WHERE" placeholder="Condition" value={options?.where} error={isValidWhereClause(options?.where)} errorMessage="Where clause is incorrect." onChange={(e) => handleOptionChange('where', e.target.value)}/>
+              <QueryInput label="WHERE" placeholder="Condition" value={options?.where} error={isValidWhereClause({whereClause: options?.where, table: selectedTable.data})} errorMessage="Where clause is incorrect." onChange={(e) => handleOptionChange('where', e.target.value)}/>
               )}
           </div>
         );
