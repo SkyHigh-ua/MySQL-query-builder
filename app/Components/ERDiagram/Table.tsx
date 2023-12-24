@@ -1,6 +1,6 @@
 import { useContext, useEffect, memo, type FC, useState } from 'react';
 import { Handle, Position, type NodeProps } from 'reactflow';
-import { Field } from '../../interfaces/Table'
+import { Field } from '../../Interfaces/Table'
 import { ProjectContext } from '../../context/ProjectContext'
 
 const Table: FC<NodeProps> = ({ data }) => {

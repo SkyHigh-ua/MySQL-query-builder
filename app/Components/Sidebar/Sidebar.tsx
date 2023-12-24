@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { ProjectContext } from '../../context/ProjectContext';
-import { Index, Table } from '../../interfaces/Table';
-import { Query, QueryProps } from '../../interfaces/Query';
+import { Index, Table } from '../../Interfaces/Table';
+import { Query, QueryProps } from '../../Interfaces/Query';
 import { FormOptions } from './FormOptions';
 import { Button } from './Button';
 import { StepIndicator } from './StepIndicator';

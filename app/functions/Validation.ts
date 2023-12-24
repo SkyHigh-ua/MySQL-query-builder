@@ -1,5 +1,5 @@
-import { QueryProps, FieldData } from "../interfaces/Query";
-import { SelectedField, Table, Field } from "../interfaces/Table";
+import { QueryProps, FieldData } from "../Interfaces/Query";
+import { SelectedField, Table, Field } from "../Interfaces/Table";
 
 export function isValidName(name: string | undefined): boolean {
     return name ? /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name) : true;

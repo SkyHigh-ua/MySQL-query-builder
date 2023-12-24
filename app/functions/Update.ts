@@ -1,5 +1,5 @@
-import { QueryProps } from "../interfaces/Query";
-import { Table } from "../interfaces/Table";
+import { QueryProps } from "../Interfaces/Query";
+import { Table } from "../Interfaces/Table";
 
 export function createUpdate(table: Table, data: QueryProps): string {
     const { schema, title } = table;

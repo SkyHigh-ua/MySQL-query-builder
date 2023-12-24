@@ -1,5 +1,5 @@
-import { QueryProps } from '../interfaces/Query';
-import { Table, SelectedField } from '../interfaces/Table';
+import { QueryProps } from '../Interfaces/Query';
+import { Table, SelectedField } from '../Interfaces/Table';
 
 interface relation {
     fromSchema: string,

@@ -1,7 +1,7 @@
 import { FC, useContext, useEffect, useState } from "react";
-import { QueryProps } from "../../interfaces/Query";
+import { QueryProps } from "../../Interfaces/Query";
 import { ProjectContext } from "../../context/ProjectContext"; 
-import { Field } from "../../interfaces/Table";
+import { Field } from "../../Interfaces/Table";
 import { Button } from './Button';
 import { QueryInput } from "./QueryInput";
 import { Dropdown } from "./Dropdown";

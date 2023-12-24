@@ -1,4 +1,4 @@
-import { Table } from '../interfaces/Table';
+import { Table } from '../Interfaces/Table';
 import { type Edge, type Node } from 'reactflow';
 
 export const transformTablesToFlowElements = (tables: Table[], positions: {x: number, y: number}[]) => {

@@ -1,9 +1,9 @@
 import React, { createContext, useState, useCallback, ReactNode } from 'react';
 import { useNodesState, useEdgesState, type Edge, type Node, type NodeChange, type EdgeChange } from 'reactflow';
-import { Table, SelectedField, Field } from '../interfaces/Table';
-import { Query } from '../interfaces/Query';
+import { Table, SelectedField, Field } from '../Interfaces/Table';
+import { Query } from '../Interfaces/Query';
 import { transformTableToNode, transformTableToEdges } from '../functions/transformFunctions';
-import { Alert } from '../interfaces/Alert';
+import { Alert } from '../Interfaces/Alert';
 
 export interface ProjectContextProps {
   nodes: Node[];

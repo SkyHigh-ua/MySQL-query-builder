@@ -1,4 +1,4 @@
-import { Field, Table, Index } from '../interfaces/Table';
+import { Field, Table, Index } from '../Interfaces/Table';
 
 export class SQLCreateTableParser {
   private sql: string;
