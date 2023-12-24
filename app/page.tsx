@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import { ProjectProvider } from './context/ProjectContext';
-import { ERDiagram } from './components/ERDiagram/ERDiagram';
-import { Sidebar } from './components/Sidebar/Sidebar';
-import { DialogWindow } from './components/DialogWindow';
-import Terminal from './components/Terminal';
-import { AlertList } from './components/Alert/AlertList';
+import { ERDiagram } from './Components/ERDiagram/ERDiagram';
+import { Sidebar } from './Components/Sidebar/Sidebar';
+import { DialogWindow } from './Components/DialogWindow';
+import Terminal from './Components/Terminal';
+import { AlertList } from './Components/Alert/AlertList';
 
 export default function Home() {
   const [isDialogOpen, setIsDialogOpen] = useState(true);
