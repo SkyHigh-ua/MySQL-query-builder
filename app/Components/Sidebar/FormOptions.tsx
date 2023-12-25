@@ -1,7 +1,7 @@
 import { FC, useContext, useEffect, useState } from "react";
-import { QueryProps } from "../../Interfaces/Query";
+import { QueryProps } from "../../interfaces/Query";
 import { ProjectContext } from "../../context/ProjectContext"; 
-import { Field } from "../../Interfaces/Table";
+import { Field } from "../../interfaces/Table";
 import { Button } from './Button';
 import { QueryInput } from "./QueryInput";
 import { Dropdown } from "./Dropdown";
@@ -57,7 +57,6 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
             return field;
           }) }));
         } else {
-          console.log(fieldsData.filter((field, i) => i === index))
           setOptions((oldOptions) => ({ ...oldOptions, fieldsData: fieldsData.filter((field, i) => i !== index) }));
         }
       }
@@ -94,7 +93,7 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
     switch(queryType) { 
       case "select": {
         return (
-          <div className="flex flex-col">
+          <div className="flex flex-col overflow-y-scroll">
             <label><input className="mr-2" type="checkbox" onChange={(e) => handleOptionChange('distinct', e.target.checked)} /> DISTINCT</label>
             <QueryInput label="WHERE" placeholder="Condition" value={options?.where} error={options?.where ? isValidWhereClause({whereClause: options?.where, fields: selectedFields}) : true} errorMessage="Where clause is incorrect." onChange={(e) => handleOptionChange('where', e.target.value)}/>
             <Dropdown label="ORDER BY" 
@@ -122,7 +121,7 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
       } 
       case "insert": { 
         return (
-          <div className="flex flex-col overflow-scroll">
+          <div className="flex flex-col overflow-y-scroll">
             {selectedTable && (<> 
                 {selectedTable.data.fields.map((field: Field, index: number) => (
                 <QueryInput key={`insert-${field.name}`} label={field.name} placeholder="Data" value={(options?.fieldsData && options.fieldsData[index]) && options?.fieldsData[index].data?.value} error={isValidFieldData(options?.fieldsData ? options.fieldsData[index]?.data?.value : undefined, field.type, field.constraints?.notNull)} errorMessage="Data is incorrect." onChange={(e) => handleOptionChange('fieldsData', e.target.value, 'data', index, `${field.name}`)}/>
@@ -133,7 +132,7 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
       } 
       case "update": { 
         return (
-          <div className="flex flex-col overflow-scroll">
+          <div className="flex flex-col overflow-y-scroll">
             {selectedTable && (<> 
                 {selectedTable.data.fields.map((field: Field, index: number) => (
                 <QueryInput key={`update-${field.name}`} label={field.name} placeholder="Data" value={(options?.fieldsData && options.fieldsData[index]) && options?.fieldsData[index].data?.value} error={isValidFieldData(options?.fieldsData ? options.fieldsData[index]?.data?.value : undefined, field.type, field.constraints?.notNull)} errorMessage="Data is incorrect." onChange={(e) => handleOptionChange('fieldsData', e.target.value, 'data', index, `${field.name}`)}/>
@@ -154,11 +153,11 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
       } 
       case "create": { 
         return (
-          <div className="flex flex-col overflow-scroll">
+          <div className="flex flex-col overflow-y-scroll">
             <QueryInput label="Schema" placeholder="Schema name" value={options?.schema} error={!options?.schema || isValidName(options?.schema)} errorMessage="Schema name is incorrect." onChange={(e) => handleOptionChange('schema', e.target.value)}/>
             <QueryInput label="Title" placeholder="Table title" value={options?.title} error={!options?.title || isValidName(options?.title)} errorMessage="Table title is incorrect." onChange={(e) => handleOptionChange('title', e.target.value)}/>
             {fields.map((field, index) => (
-              <>
+              <div key={`${field}-${index}`} className="flex flex-col">
                 <div className="flex flex-row">
                   {index > 0 && (<div className="flex items-center mr-1">
                     <Button label="-" onClick={() => removeField(index)} type="form_remove"/>
@@ -166,15 +165,15 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
                   <div className="flex flex-col">
                     <QueryInput label="Field" placeholder="Field name" value={options?.fieldsData ? options.fieldsData[index]?.name : undefined} error={isValidName(options?.fieldsData ? options.fieldsData[index]?.name : undefined)} errorMessage="Field name is incorrect." onChange={(e) => handleOptionChange('fieldsData', e.target.value, 'name', index)}/>
                     <QueryInput label="Field Type" placeholder="Field type" value={options?.fieldsData ? options.fieldsData[index]?.type : undefined} error={isValidDataType(options?.fieldsData ? options.fieldsData[index]?.type : undefined)} errorMessage="Field type is incorrect." onChange={(e) => handleOptionChange('fieldsData', e.target.value, 'type', index)}/>
-                    <label><input className="bg-gray-800 mr-2" type="checkbox" onChange={(e) => handleOptionChange('fieldsData', e.target.checked, 'notNull', index)} /> NOT NULL</label>
+                    <label><input className="bg-gray-800 mr-2" type="checkbox" checked={options?.fieldsData && (options.fieldsData[index]?.constraints?.notNull || (options.fieldsData[index]?.isPK && options.fieldsData[index]?.constraints?.autoIncrement))} onChange={(e) => handleOptionChange('fieldsData', e.target.checked, 'notNull', index)} /> NOT NULL</label>
                     <label><input className="mr-2" type="checkbox" onChange={(e) => handleOptionChange('fieldsData', e.target.checked, 'unique', index)} /> UNIQUE</label>
                     <label><input className="mr-2" type="checkbox" onChange={(e) => handleOptionChange('fieldsData', e.target.checked, 'isPK', index)} /> PK</label>
-                    <label><input className="mr-2" type="checkbox" disabled={!options?.fieldsData || options.fieldsData[index]?.isPK !== true} onChange={(e) => handleOptionChange('fieldsData', e.target.checked, 'autoIncrement', index)} /> AUTO INCREMENT</label>
+                    <label><input className="mr-2" type="checkbox" disabled={!options?.fieldsData || options.fieldsData[index]?.isPK !== true} checked={options?.fieldsData && options.fieldsData[index]?.isPK && options.fieldsData[index]?.constraints?.autoIncrement} onChange={(e) => handleOptionChange('fieldsData', e.target.checked, 'autoIncrement', index)} /> AUTO INCREMENT</label>
                     <QueryInput label="DEFAULT" placeholder="" value={options?.fieldsData && options.fieldsData[index]?.constraints?.default} error={isValidFieldData(options?.fieldsData && options.fieldsData[index]?.constraints?.default, options?.fieldsData && options.fieldsData[index]?.type, options?.fieldsData && options.fieldsData[index]?.constraints?.notNull)} errorMessage="Default statement is incorrect." onChange={(e) => handleOptionChange('fieldsData', e.target.value, 'default', index)}/>
                   </div>
                 </div>
                 {index+1 < fields.length && <hr className="bg-white border rounded w-full h-[2px] my-2" />} 
-              </>
+              </div>
             ))}
             <Button label="+" onClick={addField} type="form_add"/>
           </div>
@@ -182,11 +181,11 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
       } 
       case "edit": { 
         return (
-          <div className="flex flex-col overflow-scroll">
+          <div className="flex flex-col overflow-y-scroll">
             <QueryInput label="Schema" placeholder="Schema name" value={options?.schema} error={isValidName(options?.schema)} errorMessage="Schema name is incorrect." onChange={(e) => handleOptionChange('schema', e.target.value)}/>
             <QueryInput label="Title" placeholder="Table title" value={options?.title} error={isValidName(options?.title)} errorMessage="Table title is incorrect." onChange={(e) => handleOptionChange('title', e.target.value)}/>
             {options?.fieldsData && options.fieldsData.map((field, index) => (field.action !== 'remove' &&
-              <>
+              <div key={`${index}`} className="flex flex-col">
                 <div className="flex flex-row">
                   {index > 0 && (<div className="flex items-center mr-1">
                     <Button label="-" onClick={() => removeAlterField(index)} type="form_remove"/>
@@ -194,15 +193,15 @@ export const FormOptions: FC<FormOptionsProps> = ( { options, setOptions, queryT
                   <div className="flex flex-col">
                     <QueryInput label="Field" placeholder="Field name" value={field.name} error={isValidName(options?.fieldsData ? options.fieldsData[index]?.name : undefined)} errorMessage="Field name is incorrect." onChange={(e) => handleOptionChange('fieldsData', e.target.value, 'name', index)}/>
                     <QueryInput label="Field Type" placeholder="Field type" value={field.type} error={isValidDataType(options?.fieldsData ? options.fieldsData[index]?.type : undefined)} errorMessage="Field type is incorrect." onChange={(e) => handleOptionChange('fieldsData', e.target.value, 'type', index)}/>
-                    <label><input className="mr-2" type="checkbox" checked={field.constraints?.notNull} onChange={(e) => handleOptionChange('fieldsData', e.target.checked, 'notNull', index)} /> NOT NULL</label>
+                    <label><input className="mr-2" type="checkbox" checked={options?.fieldsData && (options.fieldsData[index]?.constraints?.notNull || (options.fieldsData[index]?.isPK && options.fieldsData[index]?.constraints?.autoIncrement))} onChange={(e) => handleOptionChange('fieldsData', e.target.checked, 'notNull', index)} /> NOT NULL</label>
                     <label><input className="mr-2" type="checkbox" checked={field.constraints?.unique} onChange={(e) => handleOptionChange('fieldsData', e.target.checked, 'unique', index)} /> UNIQUE</label>
                     <label><input className="mr-2" type="checkbox" checked={field.isPK} onChange={(e) => handleOptionChange('fieldsData', e.target.checked, 'isPK', index)} /> PK</label>
-                    <label><input className="mr-2" type="checkbox" checked={field.constraints?.autoIncrement && field.isPK} disabled={!field.isPK} onChange={(e) => handleOptionChange('fieldsData', e.target.checked, 'autoIncrement', index)} /> AUTO INCREMENT</label>
+                    <label><input className="mr-2" type="checkbox" checked={options?.fieldsData && options.fieldsData[index]?.isPK && options.fieldsData[index]?.constraints?.autoIncrement} disabled={!field.isPK} onChange={(e) => handleOptionChange('fieldsData', e.target.checked, 'autoIncrement', index)} /> AUTO INCREMENT</label>
                     <QueryInput label="DEFAULT" placeholder="" value={field.constraints?.default ? field.constraints?.default : ''} error={isValidFieldData(options?.fieldsData && options.fieldsData[index]?.constraints?.default, options?.fieldsData && options.fieldsData[index].type, options?.fieldsData && options.fieldsData[index].constraints?.notNull)} errorMessage="Default statement is incorrect." onChange={(e) => handleOptionChange('fieldsData', e.target.value, 'default', index)}/>
                   </div>
                 </div>
                 {(options?.fieldsData && index+1 < options.fieldsData.length) && <hr className="bg-white border rounded w-full h-[2px] my-2" />} 
-              </>
+              </div>
             ))}
             <Button label="+" onClick={addAlterField} type="form_add"/>
           </div>);

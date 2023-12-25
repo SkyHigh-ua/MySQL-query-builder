@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { ProjectContext } from '../../context/ProjectContext';
-import { Index, Table } from '../../Interfaces/Table';
-import { Query, QueryProps } from '../../Interfaces/Query';
+import { Index, Table, Field } from '../../interfaces/Table';
+import { Query, QueryProps } from '../../interfaces/Query';
 import { FormOptions } from './FormOptions';
 import { Button } from './Button';
 import { StepIndicator } from './StepIndicator';
@@ -18,6 +18,7 @@ export const Sidebar = ({ tabIndex }: {tabIndex: number}) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [queryType, setQueryType] = useState<string>('select');
   const [options, setOptions] = useState<QueryProps | null>(null);
+  const [prevSelectedTable, setPrevSelectedTable] = useState<Table | null>(null);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -25,7 +26,7 @@ export const Sidebar = ({ tabIndex }: {tabIndex: number}) => {
 
   const goToNextStep = () => {
     if (step === maxSteps && maxSteps !== 1) {
-      const [validationResult, validationMessage] = validateOptions(options, queryType, selectedFields, selectedTable?.data);
+      const [validationResult, validationMessage] = validateOptions(options, queryType, nodes.map(node => node.data), selectedFields, selectedTable?.data);
       if (validationResult) {
         if (queryType === 'edit' && selectedTable && options) {
           if (!isTableAltered(selectedTable.data, options)) {
@@ -59,7 +60,18 @@ export const Sidebar = ({ tabIndex }: {tabIndex: number}) => {
 
   useEffect(() => {
     if(queryType === 'edit' && selectedTable && isNewQuery) {
-      setOptions({title: selectedTable?.data.title, schema: selectedTable?.data.schema, index: selectedTable.data.index, fieldsData: selectedTable?.data.fields});
+      if (selectedTable.data !== prevSelectedTable) {
+        const newOptions = {
+          title: selectedTable?.data.title, 
+          schema: selectedTable?.data.schema, 
+          index: selectedTable.data.index, 
+          fieldsData: selectedTable?.data.fields.map((field: Field) => ({
+            ...field
+          }))
+        }
+        setPrevSelectedTable(selectedTable.data);
+        setOptions(newOptions);
+      }
     } else if ( step > 2 && !selectedTable && queryType !== 'select' ) goToPreviousStep();
   }, [selectedTable]);
 
@@ -103,9 +115,20 @@ export const Sidebar = ({ tabIndex }: {tabIndex: number}) => {
     setIsNewQuery(false);
     if (isUnion) setIsUnion(false);
     if (queryType !== 'drop') {
+      const props = {
+        ...options,
+        fieldsData: options?.fieldsData && options.fieldsData.map(field => ({
+          ...field,
+          constraints: {
+            ...field.constraints,
+            unique: field.constraints ? field.constraints.unique : false,
+            autoIncrement: (field.constraints && field.isPK) ? field.constraints.autoIncrement : false, 
+            notNull: (field.isPK && field.constraints?.autoIncrement) ? true : field.constraints ? field.constraints.notNull : false}
+          }))
+      };
       const queryData: Query = {
         type: queryType,
-        props: options === null ? {} : options,
+        props: props,
       };
       setQueryData(queryData);
     }
@@ -129,8 +152,8 @@ export const Sidebar = ({ tabIndex }: {tabIndex: number}) => {
         isPK: field.isPK,
         isFK: field.isFK,
         references: field.references,
-        constraints: field.constraints,
-      }))
+        constraints: field.constraints}))
+      console.log(fields)
       const newTableData: Table = {
         title: options?.title,
         schema: options?.schema,
@@ -148,7 +171,7 @@ export const Sidebar = ({ tabIndex }: {tabIndex: number}) => {
         const fieldsToRemove = options.fieldsData
           .filter(fieldData => fieldData.action === 'remove')
           .map(fieldData => fieldData.name);
-        const index = selectedTable.data.index.filter((index: Index) => !index.fields.every(field => fieldsToRemove.includes(field)));
+        const index = selectedTable.data.index ? selectedTable.data.index.filter((index: Index) => !index.fields.every(field => fieldsToRemove.includes(field))) : [];
         const newFieldData = options.fieldsData.filter((field, i) => field.action !== 'remove');
         const fields = newFieldData.map((field, index) => ({
           name: field.name || "undefined",
@@ -156,7 +179,7 @@ export const Sidebar = ({ tabIndex }: {tabIndex: number}) => {
           isPK: field.isPK,
           isFK: field.isFK,
           references: field.references,
-          constraints: field.constraints,
+          constraints: field.constraints
         }))
         const updatedTableData: Table = {
           title: options?.title,
