@@ -11,11 +11,15 @@ export class SQLCreateTableParser {
     this.parseSQLScript();
   }
 
+  private isValidCreateTableStatement(statement: string): boolean {
+    return statement.trim().toUpperCase().startsWith('CREATE TABLE') && statement.trim().endsWith(')');
+  }
+
   private parseSQLScript(): void {
     const statements = this.sql.split(/;(?![^()]*\))/g).map(s => s.trim()).filter(s => s);
 
     statements.forEach(statement => {
-      if (statement.toUpperCase().startsWith('CREATE TABLE')) {
+      if (this.isValidCreateTableStatement(statement)) {
         const table = this.parseCreateTableStatement(statement);
         if (table) {
           this.tables.push(table);
@@ -74,7 +78,8 @@ export class SQLCreateTableParser {
           };
         }
       } else if (!fieldDef.toUpperCase().includes('INDEX') && !fieldDef.toUpperCase().includes('CONSTRAINT')) {
-        const parts = fieldDef.match(/`?([^`]+)`?\s+([^\s]+)(\([^)]+\))?/);
+        const fieldPattern = /`?([^\s,`]+)`?\s+([^\s,]+)(\([^)]+\))?/;
+        const parts = fieldDef.match(fieldPattern);
         if (parts) {
           let fieldType = parts[2];
           const fieldDetails = parts[3];
