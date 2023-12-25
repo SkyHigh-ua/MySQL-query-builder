@@ -13,6 +13,12 @@ export const DialogWindow: React.FC<DialogWindowProps> = ({ onClose }) => {
   const { setNodes, setEdges, addAlert } = useContext(ProjectContext);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  const handleCreateNew = () => {
+    setNodes([]);
+    setEdges([]);
+    onClose();
+  };
 
   const handleLoadClick = () => {
     fileInputRef.current?.click();
@@ -53,7 +59,7 @@ export const DialogWindow: React.FC<DialogWindowProps> = ({ onClose }) => {
         <div className="bg-gray-900 p-6 rounded-lg shadow-lg w-96 relative">
         <button
             className="absolute top-2 right-2 bg-gray-700 text-white rounded-full w-4 h-4 flex items-center justify-center hover:shadow-2xl"
-            onClick={onClose}
+            onClick={() => {addAlert(`Welcome back.`, "success", false); onClose()}}
           >
             <FontAwesomeIcon className="hover:text-gray-300" icon={faXmark}/>
           </button>
@@ -73,7 +79,7 @@ export const DialogWindow: React.FC<DialogWindowProps> = ({ onClose }) => {
             </button>
             <button
               className="bg-gray-700 text-white py-2 rounded-md border-gray-700 border-2 hover:shadow-lg hover:text-gray-300"
-              onClick={onClose}
+              onClick={handleCreateNew}
             >
               Create New
             </button>

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { useNodesState, useEdgesState, type Edge, type Node, type NodeChange, type EdgeChange } from 'reactflow';
 import { Table, SelectedField, Field } from '../interfaces/Table';
 import { Query } from '../interfaces/Query';
@@ -73,6 +73,25 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
   const [selectable, setSelectable] = useState('');
   const [queryData, setQueryData] = useState({ type: '', props: {} });
   const [alerts, setAlerts] = useState<Alert[]>([]);
+
+  useEffect(() => {
+    const savedNodes = localStorage.getItem('flowNodes');
+    const savedEdges = localStorage.getItem('flowEdges');
+
+    if (savedNodes && savedNodes !== JSON.stringify(nodes)) {
+      const parsedNodes = JSON.parse(savedNodes);
+      setNodes(parsedNodes);
+    }
+
+    if (savedEdges && savedEdges !== JSON.stringify(edges)) {
+        setEdges(JSON.parse(savedEdges));
+    }
+  }, [setNodes, setEdges]);
+
+  useEffect(() => {
+      localStorage.setItem('flowNodes', JSON.stringify(nodes));
+      localStorage.setItem('flowEdges', JSON.stringify(edges));
+  }, [nodes, edges]);
 
   const handleAddTable = useCallback((newTableData: Table) => {
     setNodes((prevNodes) => [...prevNodes, transformTableToNode(newTableData, Date.now())]);
