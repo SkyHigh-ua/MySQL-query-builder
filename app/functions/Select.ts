@@ -1,5 +1,5 @@
-import { QueryProps } from '../Interfaces/Query';
-import { Table, SelectedField } from '../Interfaces/Table';
+import { QueryProps } from '../interfaces/Query';
+import { Table, SelectedField } from '../interfaces/Table';
 
 interface relation {
     fromSchema: string,
@@ -41,6 +41,7 @@ export function createSelect(SelectedFields: SelectedField[], Tables: Table[], S
     
     function findJoinPath(startTable: involvedTable, endTable: involvedTable, allJoins: relation[], path: relation[] = [], visited = new Set()): relation[] | null {
         const tableId = `${startTable.schema}.${startTable.title}`;
+        
         if (visited.has(tableId)) {
             return null;
         }
@@ -50,12 +51,26 @@ export function createSelect(SelectedFields: SelectedField[], Tables: Table[], S
         }
         let nextJoins = allJoins.filter(join => join.fromTable === startTable.title && join.fromSchema === startTable.schema);
         for (let join of nextJoins) {
-            let newPath = findJoinPath({schema: join.toSchema, title: join.toTable}, endTable, allJoins, path.concat(join));
+            let newPath = findJoinPath({schema: join.toSchema, title: join.toTable}, endTable, allJoins, path.concat(join), visited);
             if (newPath) return newPath;
         }
+
+        nextJoins = allJoins.filter(join => join.toTable === startTable.title && join.toSchema === startTable.schema);
+        for (let join of nextJoins) {
+            let newPath = findJoinPath({schema: join.fromSchema, title: join.fromTable}, endTable, allJoins, path.concat({
+                fromSchema: join.toSchema,
+                fromTable: join.toTable,
+                fromField: join.toField,
+                toSchema: join.fromSchema,
+                toTable: join.fromTable,
+                toField: join.fromField
+            }), visited);
+            if (newPath) return newPath;
+        }
+
         return null;
     }
-
+        
     let selectPart: string[] = [];
     Tables.forEach(table => {
         const tableFields = SelectedFields.filter(field => field.table === table.title && field.schema === table.schema);
@@ -97,9 +112,6 @@ export function createSelect(SelectedFields: SelectedField[], Tables: Table[], S
     }
     for (let i = 2; i < involvedTables.length; i++) {
         let joinPath = findJoinPath(involvedTables[i - 1], involvedTables[i], allJoins);
-        if (joinPath === null) {
-            joinPath = findJoinPath(involvedTables[i], involvedTables[i - 1], allJoins);
-        }
         if (joinPath === null) throw new Error('Some tables are not related.');
         joinPath.forEach(join => {
             if (!joinedTables.includes({schema: join.toSchema, title: join.toTable})){

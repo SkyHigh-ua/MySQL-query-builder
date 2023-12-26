@@ -1,9 +1,32 @@
-import React, { createContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { useNodesState, useEdgesState, type Edge, type Node, type NodeChange, type EdgeChange } from 'reactflow';
-import { Table, SelectedField, Field } from '../Interfaces/Table';
-import { Query } from '../Interfaces/Query';
+import { Table, SelectedField, Field } from '../interfaces/Table';
+import { Query } from '../interfaces/Query';
 import { transformTableToNode, transformTableToEdges } from '../functions/transformFunctions';
-import { Alert } from '../Interfaces/Alert';
+import { Alert } from '../interfaces/Alert';
+import crypto from 'crypto';
+
+function encrypt(text: string, key: Buffer, iv: Buffer) {
+  let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
+  let encrypted = cipher.update(text);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return { iv: iv.toString('hex'), encryptedData: encrypted.toString('hex') };
+}
+
+function decrypt(text: any, key: Buffer): string {
+  try {
+    let iv = Buffer.from(text.iv, 'hex');
+    let encryptedText = Buffer.from(text.encryptedData, 'hex');
+    let decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key), iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
+  }
+  catch (error){
+    console.error(error);
+    return '';
+  }
+}
 
 export interface ProjectContextProps {
   nodes: Node[];
@@ -73,6 +96,32 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
   const [selectable, setSelectable] = useState('');
   const [queryData, setQueryData] = useState({ type: '', props: {} });
   const [alerts, setAlerts] = useState<Alert[]>([]);
+
+  useEffect(() => {
+    const savedNodes = localStorage.getItem('flowNodes');
+    const savedEdges = localStorage.getItem('flowEdges');
+    const encryptionKey = sessionStorage.getItem('sessionData');
+
+    if (savedNodes && encryptionKey) {
+      const decryptedNodes = decrypt(JSON.parse(savedNodes), Buffer.from(encryptionKey, 'hex'));
+      if(decryptedNodes !== JSON.stringify(nodes)) setNodes(JSON.parse(decryptedNodes));
+    }
+
+    if (savedEdges && encryptionKey) {
+      const decryptedEdges = decrypt(JSON.parse(savedEdges), Buffer.from(encryptionKey, 'hex'));
+      if(decryptedEdges !== JSON.stringify(edges)) setEdges(JSON.parse(decryptedEdges));
+    }
+  }, [setNodes, setEdges]);
+
+  useEffect(() => {
+    const key = crypto.randomBytes(32);
+    const iv = crypto.randomBytes(16);
+    sessionStorage.setItem('sessionData', key.toString('hex'));
+    const encryptedNodes = encrypt(JSON.stringify(nodes), key, iv);
+    const encryptedEdges = encrypt(JSON.stringify(edges), key, iv);
+    localStorage.setItem('flowNodes', JSON.stringify(encryptedNodes));
+    localStorage.setItem('flowEdges', JSON.stringify(encryptedEdges));
+  }, [nodes, edges]);
 
   const handleAddTable = useCallback((newTableData: Table) => {
     setNodes((prevNodes) => [...prevNodes, transformTableToNode(newTableData, Date.now())]);

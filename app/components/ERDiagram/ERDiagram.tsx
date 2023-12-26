@@ -3,14 +3,14 @@ import ReactFlow, { addEdge, Background, Controls, type Connection, type Edge, t
 import Table from './Table';
 import 'reactflow/dist/style.css';
 import { ProjectContext } from '../../context/ProjectContext';
-import { Field, Index } from '../../Interfaces/Table';
+import { Field, Index } from '../../interfaces/Table';
 
 const nodeTypes = {
   table: Table,
 };
 
 export function ERDiagram () {
-  const { nodes, onNodesChange, edges, setEdges, onEdgesChange, setSelectedTable, setQueryData, handleEditTable, handleRemoveTable }  = useContext(ProjectContext);
+  const { nodes, onNodesChange, edges, setEdges, onEdgesChange, setSelectedTable, setQueryData, handleEditTable, handleRemoveTable, addAlert }  = useContext(ProjectContext);
   const [isInteractive, setIsInteractive] = useState(true);
 
   function toggleIsInteractive() {
@@ -19,72 +19,80 @@ export function ERDiagram () {
 
   const onConnect = useCallback(
     (params: Connection | Edge) => {
-      if (params.targetHandle && params.source !== params.target && params.sourceHandle) {
-        const fieldName = params.targetHandle.split('-')[2];
-        const sourceFieldName = params.sourceHandle.split('-')[2];
-        const sourceNode = nodes.find(node => node.id === params.source);
-        const targetNode = nodes.find(node => node.id === params.target);
-        if (targetNode && sourceNode){
-          const targetField = targetNode.data.fields.find((field: Field) => field.name === fieldName);
-          const customEdge = {
-            ...params,
-            id: `e${params.source}-${params.target}-${targetField.name}`,
-            type: 'smoothstep',
-            source: `${params.source}`,
-            target: `${params.target}`,
-            sourceHandle: params.sourceHandle,
-            targetHandle: params.targetHandle,
-            markerStart: 'one',
-            markerEnd: targetField.constraints.unique ? 'one' : 'many'
-          };
-          setSelectedTable(targetNode);
-          setQueryData({
-            type: 'edit',
-            props: {
-              ...targetNode.data,
-              index: [
-                ...(targetNode.data.index ? targetNode.data.index : []),
-                {
-                  name: `fk_${fieldName}_${sourceFieldName}`,
-                  type: 'fk',
-                  fields: [fieldName],
+      if (params.targetHandle && params.sourceHandle) {
+        if (params.source !== params.target){
+          const fieldName = params.targetHandle.split('-')[2];
+          const sourceFieldName = params.sourceHandle.split('-')[2];
+          const sourceNode = nodes.find(node => node.id === params.source);
+          const targetNode = nodes.find(node => node.id === params.target);
+          if (targetNode && sourceNode){
+            const targetField = targetNode.data.fields.find((field: Field) => field.name === fieldName);
+            if (!targetField.references){
+              const customEdge = {
+                ...params,
+                id: `e${params.source}-${params.target}-${targetField.name}`,
+                type: 'smoothstep',
+                source: `${params.source}`,
+                target: `${params.target}`,
+                sourceHandle: params.sourceHandle,
+                targetHandle: params.targetHandle,
+                markerStart: 'one',
+                markerEnd: targetField.constraints.unique ? 'one' : 'many'
+              };
+              setSelectedTable(targetNode);
+              setQueryData({
+                type: 'edit',
+                props: {
+                  ...targetNode.data,
+                  index: [
+                    ...(targetNode.data.index ? targetNode.data.index : []),
+                    {
+                      name: `fk_${fieldName}_${sourceFieldName}`,
+                      type: 'fk',
+                      fields: [fieldName],
+                    }
+                  ],
+                  fieldsData: [
+                    ...targetNode.data.fields.map((field: Field) => field.name === targetField.name ? 
+                    {
+                      ...targetField,
+                      isFK: true,
+                      references: { schema: sourceNode.data.schema, table: sourceNode.data.title, column: sourceFieldName },
+                    }
+                    : field
+                    ),
+                  ]
                 }
-              ],
-              fieldsData: [
-                ...targetNode.data.fields.map((field: Field) => field.name === targetField.name ? 
-                {
-                  ...targetField,
-                  isFK: true,
-                  references: { schema: sourceNode.data.schema, table: sourceNode.data.title, column: sourceFieldName },
-                }
-                : field
-                ),
-              ]
+              });
+              handleEditTable(targetNode, {
+                schema: targetNode.data.schema,
+                title: targetNode.data.title,
+                index: [
+                  ...(targetNode.data.index ? targetNode.data.index : []),
+                  {
+                    name: `fk_${fieldName}_${sourceFieldName}`,
+                    type: 'fk',
+                    fields: [fieldName],
+                  }
+                ],
+                fields: [
+                  ...targetNode.data.fields.map((field: Field) => field.name === targetField.name ? 
+                  {
+                    ...targetField,
+                    isFK: true,
+                    references: { schema: sourceNode.data.schema, table: sourceNode.data.title, column: sourceFieldName },
+                  }
+                  : field
+                  ),
+                ] as Field[]
+              })
+              setEdges((eds) => addEdge(customEdge, eds));
+            } else {
+              addAlert('You can\'t create same relation twice', 'error', false);
             }
-          });
-          handleEditTable(targetNode, {
-            schema: targetNode.data.schema,
-            title: targetNode.data.title,
-            index: [
-              ...(targetNode.data.index ? targetNode.data.index : []),
-              {
-                name: `fk_${fieldName}_${sourceFieldName}`,
-                type: 'fk',
-                fields: [fieldName],
-              }
-            ],
-            fields: [
-              ...targetNode.data.fields.map((field: Field) => field.name === targetField.name ? 
-              {
-                ...targetField,
-                isFK: true,
-                references: { schema: sourceNode.data.schema, table: sourceNode.data.title, column: sourceFieldName },
-              }
-              : field
-              ),
-            ] as Field[]
-          })
-          setEdges((eds) => addEdge(customEdge, eds));
+        }
+      } else {
+        addAlert('You can\'t create self-referential relation.', 'error', false);
       }}
     },
     [edges, nodes]

@@ -1,5 +1,5 @@
-import { QueryProps, FieldData } from "../Interfaces/Query";
-import { SelectedField, Table, Field } from "../Interfaces/Table";
+import { QueryProps, FieldData } from "../interfaces/Query";
+import { SelectedField, Table, Field } from "../interfaces/Table";
 
 export function isValidName(name: string | undefined): boolean {
     return name ? /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name) : true;
@@ -145,7 +145,7 @@ export function isValidWhereClause({whereClause, table, fields}: {whereClause: s
     return true;
 }
 
-export function validateOptions(options: QueryProps | null, type: string, selectedFields?: SelectedField[], selectedTable?: Table | null): [boolean, string] {
+export function validateOptions(options: QueryProps | null, type: string, allTables: Table[], selectedFields?: SelectedField[], selectedTable?: Table | null): [boolean, string] {
     let isTherePK = false;
     switch (type) {
         case "select":
@@ -164,18 +164,20 @@ export function validateOptions(options: QueryProps | null, type: string, select
             if (!options.where) return [false, 'Where Clause must be filled.'];
             return [true, ''];
         case "delete":
-            if (options === null) return [false, 'At least one field must be filled.'];
-            if (options.where && !isValidWhereClause({whereClause: options.where, table: selectedTable})) return [false, 'Where Clause is Incorrect'];
-            if (!options.where) return [false, 'Where Clause must be filled.'];
+            if (options && options.where){
+                if (!isValidWhereClause({whereClause: options.where, table: selectedTable})) return [false, 'Where Clause is Incorrect'];
+            }
             return [true, ''];
         case "create":
             if (options === null) return [false, 'At least one field must be filled.'];
             if (options.title ? !isValidName(options.title) : true) return [false, 'Table title is incorrect.'];
             if (options.schema ? !isValidName(options.schema) : true) return [false, 'Table schema is incorrect.'];
+            if (allTables.some(table => table.title === options.title && table.schema === options.schema)) return [false, 'This table already exists.'];
             if (!options.fieldsData) return [false, 'Table must have at least one field.'];
             for (const index in options.fieldsData) {
                 const field = options.fieldsData[index]
                 if(field.name ? !isValidName(field.name) : true) return [false, `Name is incorrect in ${field.name ? field.name : parseInt(index) + 1} field.`];
+                if(options.fieldsData.filter(f => f.name === field.name).length > 1) return [false, `Field names must be unique.`];
                 if(field.type ? !isValidDataType(field.type) : true) return [false, `Type is incorrect in "${field.name}" field.`];
                 if(field.constraints?.autoIncrement && field.type && !['int', 'bigint'].includes(field.type.toLowerCase())) return [false, `Auto increment can be applied only to INT fields ("${field.name}" field).`];
                 if(field.constraints?.default && !isValidFieldData(field.constraints.default, field.type, field.constraints.notNull)) return [false, `Default value is incorrect in "${field.name}" field.`];
@@ -187,10 +189,12 @@ export function validateOptions(options: QueryProps | null, type: string, select
             if (options === null) return [false, 'At least one field must be filled.'];
             if (options.title ? !isValidName(options.title) : true) return [false, 'Table title is incorrect.'];
             if (options.schema ? !isValidName(options.schema) : true) return [false, 'Table schema is incorrect.'];
+            if (allTables.some(table => table.title === options.title && table.schema === options.schema) && (options.schema !== selectedTable?.schema || options.title !== selectedTable?.title)) return [false, 'This table already exists.'];
             if (!options.fieldsData) return [false, 'Table must have at least one field.'];
             for (const index in options.fieldsData) {
                 const field = options.fieldsData[index]
                 if(field.name ? !isValidName(field.name) : true) return [false, `Name is incorrect in ${field.name ? field.name : parseInt(index) + 1} field.`];
+                if(options.fieldsData.filter(f => f.name === field.name).length > 1) return [false, `Field names must be unique.`];
                 if(field.type ? !isValidDataType(field.type) : true) return [false, `Type is incorrect in "${field.name}" field.`];
                 if(field.constraints?.autoIncrement && field.type && !['int', 'bigint'].includes(field.type.toLowerCase())) return [false, `Auto increment can be applied only to INT fields ("${field.name}" field).`];
                 if(field.constraints?.default && !isValidFieldData(field.constraints.default, field.type, field.constraints.notNull)) return [false, `Default value is incorrect in "${field.name}" field.`];

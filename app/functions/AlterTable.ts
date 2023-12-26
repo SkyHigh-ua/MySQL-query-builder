@@ -1,5 +1,5 @@
-import { QueryProps } from "../Interfaces/Query";
-import { Index, Table } from "../Interfaces/Table";
+import { QueryProps } from "../interfaces/Query";
+import { Index, Table } from "../interfaces/Table";
 
 function isIndexEqual(index1: Index, index2: Index) {
   return index1.name === index2.name &&
