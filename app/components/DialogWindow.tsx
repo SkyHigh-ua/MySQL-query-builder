@@ -10,7 +10,7 @@ interface DialogWindowProps {
 }
 
 export const DialogWindow: React.FC<DialogWindowProps> = ({ onClose }) => {
-  const { setNodes, setEdges, addAlert } = useContext(ProjectContext);
+  const { nodes, setNodes, setEdges, addAlert } = useContext(ProjectContext);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   
@@ -59,7 +59,7 @@ export const DialogWindow: React.FC<DialogWindowProps> = ({ onClose }) => {
         <div className="bg-gray-900 p-6 rounded-lg shadow-lg w-96 relative">
         <button
             className="absolute top-2 right-2 bg-gray-700 text-white rounded-full w-4 h-4 flex items-center justify-center hover:shadow-2xl"
-            onClick={() => {addAlert(`Welcome back.`, "success", false); onClose()}}
+            onClick={() => {if(nodes.length) addAlert(`Welcome back.`, "success", false); onClose()}}
           >
             <FontAwesomeIcon className="hover:text-gray-300" icon={faXmark}/>
           </button>
